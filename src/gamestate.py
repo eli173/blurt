@@ -29,6 +29,8 @@ class GameRunner():
         self.pingTime = None
         self.ansTime = None
         self.deadPlayers = {}
+        self.highestPing = 0
+        self.winners = set()
     def get_player(self, msg):
         if 'user' not in msg:
             return None
@@ -41,6 +43,7 @@ class GameRunner():
         # assuming roll is same as tier for now
         self.currVal = random.randint(1,self.maxVal)
         self.skips = 0
+        self.winners = set()
         tier = self.currVal
         cur = self.dbc.cursor()
         params = (tier,)
@@ -59,11 +62,12 @@ class GameRunner():
     def end_round(self):
         # sends the scores
         self.notLive = True
+        self.highestPing = 0
         scores = []
         for p in self.players.values():
             p.ready = False
             scores.append({'name': p.name, 'score': p.score})
-        obj = {'type': 'end', 'scores': scores, 'answer': self.currWord}
+        obj = {'type': 'end', 'scores': scores, 'answer': self.currWord, 'winners':list(self.winners)}
         #await self.cm.broadcast(json.dumps(obj))
         return obj
     async def leaver(self, idno):
@@ -114,7 +118,7 @@ class GameRunner():
                 o['type'] = 'join'
                 #asyncio.run(self.cm.broadcast(json.dumps(o)))
                 plrs = [p.obj() for p in self.players.values()]
-                po = {'scores': plrs, 'type': 'scores'}
+                po = {'scores': plrs, 'type': 'scores', 'winners': []}
                 #await ws.send(json.dumps(po))
                 po2 = {'type':'reg'}
                 await ws.send(json.dumps(po2))
@@ -152,7 +156,9 @@ class GameRunner():
             if p is None:
                 return
             t = time.time_ns() // 1000
-            p.ping = min(t - self.pingTime, MAX_PING) # max 3 seconds
+            theping = min(t - self.pingTime, MAX_PING) # max 3 seconds
+            p.ping = theping
+            self.highestPing = max(self.highestPing, theping)
         elif 'guess' in msg:
             if self.notLive:
                 return
@@ -167,15 +173,17 @@ class GameRunner():
                     rightobj = {'type': 'right'}
                     await ws.send(json.dumps(rightobj))
                     p.score += self.currVal
+                    self.winners.add(p.name)
                     self.ansTime = ct
                     # have to trigger and end round in a few secs
-                    await asyncio.sleep(5)
+                    await asyncio.sleep(self.highestPing/1000 + 0.1)
                     #await self.end_round()
                     obj = self.end_round()
                     await self.cm.broadcast(json.dumps(obj))
                     # does any of this even work lol?
                 elif ct - self.ansTime < p.ping:
                     p.score += self.currVal
+                    self.winners.add(p.name)
                     rightobj = {'type': 'right'}
                     await ws.send(json.dumps(rightobj))
             # now send to everyone

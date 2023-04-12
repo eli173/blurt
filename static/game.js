@@ -1,5 +1,7 @@
-
-HOST = (window.location.hostname == "doughyassboi.us") ?"wss://" + window.location.hostname + "/api/" : 'ws://localhost:8765';
+HOST =
+  window.location.hostname == "doughyassboi.us"
+    ? "wss://" + window.location.hostname + "/api/"
+    : "ws://localhost:8765";
 
 var gm = null;
 
@@ -38,6 +40,11 @@ class GameManager {
           '<div class="clue-text">' +
           dat["clue"] +
           "</div>";
+        // recolor the names
+        let usernames = Array.from(document.querySelectorAll(".username"));
+        for (let un of usernames) {
+          un.style.backgroundColor = "green";
+        }
       } else if (t == "end") {
         document.getElementById("skip").hidden = true;
         document.getElementById("ready").hidden = false;
@@ -56,8 +63,12 @@ class GameManager {
         for (let s of sc) {
           let d = document.createElement("div");
           d.classList.add("score-entry");
+          let scorecolor = "green";
+          if (dat["winners"].includes(s["name"])) scorecolor = "red";
           d.innerHTML =
-            '<div class="username">' +
+            '<div class="username" style="background-color:' +
+            scorecolor +
+            ';">' +
             s["name"] +
             '</div><div class="user-score">' +
             s["score"] +
