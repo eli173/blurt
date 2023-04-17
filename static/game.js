@@ -1,8 +1,7 @@
 
-HOST =
-  window.location.host == "doughyassboi.us"
-    ? "wss://" + window.location.host + "/api/"
-    : "ws://" + window.location.host;
+
+HOST = 'ws://localhost:8765'
+
 
 var gm = null;
 
@@ -33,7 +32,7 @@ class GameManager {
                 thisViewModel.terminateRound(dat.answer);
                 thisViewModel.waitingForUserConfirm(true);
                 console.log('end of round, ', dat);
-                thisViewModel.updateScores(dat.scores);
+                thisViewModel.updateScores(dat.scores, dat.winners);
             }
             else if(t == 'reg') {
                 thisViewModel.proceedToWait();

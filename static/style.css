@@ -109,6 +109,9 @@ h1.banner{
     color:white;
 
 }
+.user-won {
+		background: #26BA90;
+}
 .main-game-box{
     position:relative;
 }

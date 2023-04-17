@@ -90,7 +90,7 @@ var GameViewModel = function() {
         return (this.gameState() == "ingame" && this.userCanSkip());
     }
 
-    this.updateScores = function(scoresArr)
+    this.updateScores = function(scoresArr, winnersArr=[])
     {
         this.scoresList.removeAll();
         for (let s of scoresArr)
@@ -98,6 +98,7 @@ var GameViewModel = function() {
             this.scoresList.push({
                 name: s.name,
                 score: s.score,
+								userWon: winnersArr.includes(s.name),
                 userDidSkip: false
             });
         }
@@ -108,11 +109,9 @@ var GameViewModel = function() {
         var targetUser = ko.utils.arrayFirst(this.scoresList(), function(player){ return player.name == username; });
         if (targetUser)
         {
-            this.scoresList.replace(targetUser, {name: targetUser.name, score: targetUser.score, userDidSkip: true})
+            this.scoresList.replace(targetUser, {name: targetUser.name, score: targetUser.score, userWon: false, userDidSkip: true})
         }
     }
-
-
     
 }
 
@@ -121,8 +120,19 @@ var thisViewModel = new GameViewModel();
 
 window.onload = function(){
     loadit();
+		let keyctl = (e) => {
+    if (e.ctrlKey) {
+      if (e.code == "KeyS") {
+        gm.skip();
+      } else if (e.code == "KeyR") {
+					gm.ready();
+					thisViewModel.waitingForUserConfirm(false);
+      }
+    }
+  };
+  document.addEventListener("keydown", keyctl);
     ko.applyBindings(thisViewModel);
-createBalloons(50);
+		createBalloons(50);
 }
 
 
