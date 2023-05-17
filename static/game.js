@@ -1,6 +1,8 @@
 
-
-HOST = 'ws://localhost:8765'
+HOST =
+  window.location.host == "doughyassboi.us"
+    ? "wss://" + window.location.host + "/api/"
+    : "ws://" + window.location.host;
 
 
 var gm = null;
@@ -47,7 +49,7 @@ class GameManager {
                 thisViewModel.setUserSkipped(dat.name);
             }
             else if(t == 'guess') {
-                thisViewModel.guessesList.push({
+                thisViewModel.guessesList.unshift({
                     name: dat.name,
                     guess: dat.guess
                 });
